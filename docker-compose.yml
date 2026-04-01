@@ -1,0 +1,12 @@
+services:
+  check-cuda:
+    build:
+      context: .
+    restart: no
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
