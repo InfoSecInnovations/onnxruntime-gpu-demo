@@ -29,7 +29,7 @@ ENV UV_HTTP_TIMEOUT=500
 
 # this version of PyTorch is compatible with older GPUs
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu126
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install sentence-transformers~=5.2.3 langchain-text-splitters~=1.1.1 requests fastembed-gpu tika
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install sentence-transformers~=5.2.3 langchain-text-splitters~=1.1.1 requests fastembed-gpu tika beautifulsoup4
 
 COPY . .
 
