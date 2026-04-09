@@ -6,6 +6,7 @@ RUN uv venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 # Place entry points in the environment at the front of the path
 ENV PATH="/opt/venv/bin:$PATH"
+# end uv documentation pasting
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
@@ -14,6 +15,7 @@ RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list.d/debian.s
 ADD https://developer.download.nvidia.com/compute/cuda/repos/debian13/x86_64/cuda-keyring_1.1-1_all.deb cuda-keyring_1.1-1_all.deb
 RUN dpkg -i cuda-keyring_1.1-1_all.deb
 
+# this appears to be sufficient to get cuda working with fastembed
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
 /bin/sh -c set -eux; \ 
@@ -27,8 +29,8 @@ ENV UV_HTTP_TIMEOUT=500
 
 # this version of PyTorch is compatible with older GPUs
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu126
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install sentence-transformers~=5.2.3 langchain-text-splitters~=1.1.1 requests fastembed-gpu
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install sentence-transformers~=5.2.3 langchain-text-splitters~=1.1.1 requests fastembed-gpu tika
 
 COPY . .
 
-CMD ["uv", "run", "bench.py"]
+CMD ["uv", "run", "tika_ingest.py"]

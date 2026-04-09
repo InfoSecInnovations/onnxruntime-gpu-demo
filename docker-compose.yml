@@ -6,6 +6,8 @@ services:
     restart: no
     environment:
       - SHABTI_MODELS_DIR=/root/.cache/fastembed=value
+      - TIKA_CLIENT_ONLY=True
+      - 'TIKA_SERVER_ENDPOINT=http://tika:9998'
     volumes:
       - shabti-models:/root/.cache/fastembed
       - shabti-hf:/root/.cache/huggingface
@@ -33,6 +35,13 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+  tika:
+    container_name: tika
+    image: apache/tika:3.3.0.0-full
+    ports:
+      - "9998:9998"
+    restart: unless-stopped
+
 
 volumes:
   ollama:
