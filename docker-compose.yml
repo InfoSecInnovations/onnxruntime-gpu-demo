@@ -1,8 +1,14 @@
 services:
   check-cuda:
+    container_name: check-cuda
     build:
       context: .
     restart: no
+    environment:
+      - SHABTI_MODELS_DIR=/root/.cache/fastembed=value
+    volumes:
+      - shabti-models:/root/.cache/fastembed
+      - shabti-hf:/root/.cache/huggingface
     deploy:
       resources:
         reservations:
@@ -10,3 +16,25 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:0.18.2
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  ollama:
+  shabti-models:
+  shabti-hf:
