@@ -41,9 +41,30 @@ services:
     ports:
       - "9998:9998"
     restart: unless-stopped
+  llama_cpp:
+    container_name: llama_cpp
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    restart: unless-stopped
+    ports:
+      - "11435:8080"
+    environment:
+      - "LLAMA_CACHE=/models/"  
+      - "HF_HUB_CACHE=/models/"
+    volumes:
+      - llama_cpp:/models
+      - ./my-models.ini:/my-models.ini
+    command: ["--models-preset", "/my-models.ini"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 
 volumes:
   ollama:
   shabti-models:
   shabti-hf:
+  llama_cpp:
