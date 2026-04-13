@@ -5,12 +5,16 @@ services:
       context: .
     restart: no
     environment:
-      - SHABTI_MODELS_DIR=/root/.cache/fastembed=value
+      - SHABTI_MODELS_DIR=/root/.cache/fastembed
       - TIKA_CLIENT_ONLY=True
       - 'TIKA_SERVER_ENDPOINT=http://tika:9998'
     volumes:
       - shabti-models:/root/.cache/fastembed
       - shabti-hf:/root/.cache/huggingface
+    depends_on:
+      - ollama
+      - tika
+      - llama_cpp
     deploy:
       resources:
         reservations:
@@ -53,7 +57,7 @@ services:
     volumes:
       - llama_cpp:/models
       - ./my-models.ini:/my-models.ini
-    command: ["--models-preset", "/my-models.ini"]
+    command: ["--models-preset", "/my-models.ini", "--embeddings"]
     deploy:
       resources:
         reservations:

@@ -26,6 +26,8 @@ apt-get install -y --no-install-recommends build-essential cuda-toolkit
 ENV UV_LINK_MODE=copy
 # try to help with the large nvidia downloads timing out
 ENV UV_HTTP_TIMEOUT=500
+# this should make print statement appear more immediately
+ENV PYTHONUNBUFFERED=1
 
 # this version of PyTorch is compatible with older GPUs
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu126
@@ -33,4 +35,4 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install sentence-transforme
 
 COPY . .
 
-CMD ["uv", "run", "tika_ingest.py"]
+CMD ["uv", "run", "bench.py"]

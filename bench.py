@@ -1,7 +1,7 @@
 import torch
 import onnxruntime
 from sentence_transformers import SentenceTransformer
-
+from test_llama_cpp import load_model, create_embeddings_llama_cpp
 from fastembed import TextEmbedding
 import os
 import requests
@@ -54,8 +54,12 @@ def do_loading(model_name):
                         current = value["completed"]
                     yield current
 
+# load model in Ollama
 for _ in do_loading("paraphrase-multilingual"):
     pass
+
+# load model in llama.cpp
+load_model("paraphrase-multilingual")
 
 splitter = SentenceTransformersTokenTextSplitter(
     model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
@@ -75,30 +79,22 @@ with open("bench_text.txt") as f:
 split = splitter.split_text(text)
 print(len(split))
 
+BENCH_ITERATIONS = 5
+
+def bench_embedding_method(func, label):
+    total_time = 0
+    for i in range(BENCH_ITERATIONS):
+        start = time.perf_counter()
+        embeddings = func(split)
+        end = time.perf_counter()
+        total_time += end - start
+    print(f"{label} took {total_time / BENCH_ITERATIONS}s on average")
+
 print("start embeddings bench")
 
-# # FastEmbed
-start = time.perf_counter()
-embeddings = list(model.embed(split))
-end = time.perf_counter()
-print(len(embeddings))
-print(embeddings[0][0])
-print(f"FastEmbed took {end - start}s")
-
-# Sentence Transformers
-start = time.perf_counter()
-embeddings = stransform.encode(split)
-end = time.perf_counter()
-print(len(embeddings))
-print(embeddings[0][0])
-print(f"Sentence Transformers took {end - start}s")
-
-# Ollama
-start = time.perf_counter()
-embeddings = create_embeddings_ollama(split)
-end = time.perf_counter()
-print(len(embeddings))
-print(embeddings[0][0])
-print(f"Ollama took {end - start}s")
+bench_embedding_method(lambda x: list(model.embed(x)), "FastEmbed")
+bench_embedding_method(stransform.encode, "Sentence Transformers")
+bench_embedding_method(create_embeddings_ollama, "Ollama")
+bench_embedding_method(create_embeddings_llama_cpp, "Llama.cpp")
 
 print("end embedding bench")
