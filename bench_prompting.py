@@ -9,6 +9,8 @@ BENCH_ITERATIONS = 5
 
 def bench_llm(func, label):
     total_time = 0
+    # run a "mock" prompt to make sure the system is "warmed up"
+    func("What does Shabti mean?")
     for i in range(BENCH_ITERATIONS):
         start = time.perf_counter()
         func("What does Shabti mean?")
