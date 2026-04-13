@@ -1,0 +1,75 @@
+services:
+  check-cuda:
+    container_name: check-cuda
+    build:
+      context: .
+      dockerfile: Dockerfile.no_cuda
+    restart: no
+    environment:
+      - SHABTI_MODELS_DIR=/root/.cache/fastembed
+      - TIKA_CLIENT_ONLY=True
+      - 'TIKA_SERVER_ENDPOINT=http://tika:9998'
+    volumes:
+      - shabti-models:/root/.cache/fastembed
+      - shabti-hf:/root/.cache/huggingface
+    depends_on:
+      - ollama
+      - tika
+      - llama_cpp
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:0.18.2
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  tika:
+    container_name: tika
+    image: apache/tika:3.3.0.0-full
+    ports:
+      - "9998:9998"
+    restart: unless-stopped
+  llama_cpp:
+    container_name: llama_cpp
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    restart: unless-stopped
+    ports:
+      - "11435:8080"
+    environment:
+      - "LLAMA_CACHE=/models/"  
+      - "HF_HUB_CACHE=/models/"
+    volumes:
+      - llama_cpp:/models
+      - ./my-models.ini:/my-models.ini
+    command: ["--models-preset", "/my-models.ini", "--embeddings"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+
+volumes:
+  ollama:
+  shabti-models:
+  shabti-hf:
+  llama_cpp:
