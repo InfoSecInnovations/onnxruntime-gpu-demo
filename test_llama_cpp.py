@@ -32,5 +32,10 @@ def create_embeddings_llama_cpp(text):
     response = requests.post("http://llama_cpp:8080/v1/embeddings", json=data).json()
     return [x["embedding"] for x in response["data"]]
 
+def prompt_llama_cpp(input):
+    data = {"model": "mistral7b", "prompt": input}
+    response = requests.post("http://llama_cpp:8080/v1/completions", json=data).json()
+    return response['choices'][0]['text']
+
 # load_model("paraphrase-multilingual")
 # create_embeddings_llama_cpp(["Hello", "yes"])

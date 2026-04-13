@@ -2,10 +2,9 @@ import torch
 import onnxruntime
 from sentence_transformers import SentenceTransformer
 from test_llama_cpp import load_model, create_embeddings_llama_cpp
+from ollama_functionality import create_embeddings_ollama, load_model_ollama
 from fastembed import TextEmbedding
 import os
-import requests
-import json
 import time
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 
@@ -28,35 +27,7 @@ model = TextEmbedding(
     providers=["CUDAExecutionProvider"]
 )
 
-def do_loading(model_name):
-    def is_loaded():
-        models = requests.get(f"http://ollama:11434/api/tags")
-        model_list = json.loads(models.text)["models"]
-        return next(
-            filter(lambda x: x["name"].split(":")[0] == model_name, model_list),
-            None,
-        )
-
-    while not is_loaded():
-        print(f"{model_name} model not found. Please wait while it loads.")
-        request = requests.post(
-            f"http://ollama:11434/api/pull",
-            data=json.dumps({"name": model_name}),
-            stream=True,
-        )
-        current = 0
-        for item in request.iter_lines():
-            if item:
-                value = json.loads(item)
-                # TODO: display statuses
-                if "total" in value:
-                    if "completed" in value:
-                        current = value["completed"]
-                    yield current
-
-# load model in Ollama
-for _ in do_loading("paraphrase-multilingual"):
-    pass
+load_model_ollama("paraphrase-multilingual")
 
 # load model in llama.cpp
 load_model("paraphrase-multilingual")
@@ -64,14 +35,6 @@ load_model("paraphrase-multilingual")
 splitter = SentenceTransformersTokenTextSplitter(
     model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 )
-
-
-def create_embeddings_ollama(text):
-    data = {"model": "paraphrase-multilingual", "input": text, "stream": False}
-    response = requests.post(
-        f"http://ollama:11434/api/embed", data=json.dumps(data)
-    ).json()
-    return response["embeddings"]
 
 
 with open("bench_text.txt") as f:

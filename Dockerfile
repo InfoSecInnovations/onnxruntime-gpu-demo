@@ -35,4 +35,4 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install sentence-transforme
 
 COPY . .
 
-CMD ["uv", "run", "bench.py"]
+CMD ["uv", "run", "test_chat.py"]
